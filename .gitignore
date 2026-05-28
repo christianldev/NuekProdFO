@@ -48,3 +48,7 @@ Desktop.ini
 # Rider / JetBrains
 .idea/
 *.sln.iml
+
+# Environment secrets
+.env
+!.env.example

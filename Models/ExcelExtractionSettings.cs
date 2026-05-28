@@ -9,4 +9,6 @@ public class ExcelExtractionSettings
     public string PackageCellAddress { get; set; } = "B59";
 
     public string RequesterCellAddress { get; set; } = "D10";
+
+    public string BankCellAddress { get; set; } = "H10";
 }

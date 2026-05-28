@@ -10,7 +10,8 @@ namespace NuekProdFO;
 public partial class MainWindow : Window
 {
     private readonly ExcelTicketExtractorService _excelService = new();
-    private readonly SmtpEmailService _emailService = new();
+    private readonly OutlookEmailService _emailService = new();
+    private readonly EnvironmentConfigService _environmentConfigService = new();
     private readonly List<string> _selectedFiles = [];
 
     public ObservableCollection<TicketRecord> Records { get; } = [];
@@ -19,6 +20,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = this;
+        LoadOutlookConfigIntoUi();
     }
 
     private void SelectFiles_Click(object sender, RoutedEventArgs e)
@@ -93,10 +95,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        SmtpSettings smtpSettings;
+        OutlookEmailSettings outlookSettings;
         try
         {
-            smtpSettings = BuildSmtpSettings();
+            outlookSettings = BuildOutlookSettingsFromEnv();
         }
         catch (Exception ex)
         {
@@ -112,7 +114,7 @@ public partial class MainWindow : Window
         {
             try
             {
-                await _emailService.SendTicketNotificationAsync(smtpSettings, record);
+                await Task.Run(() => _emailService.SendTicketNotification(outlookSettings, record));
                 sent++;
             }
             catch (Exception ex)
@@ -147,50 +149,65 @@ public partial class MainWindow : Window
         };
     }
 
-    private SmtpSettings BuildSmtpSettings()
+    private OutlookEmailSettings BuildOutlookSettingsFromEnv()
     {
-        if (string.IsNullOrWhiteSpace(TxtSmtpHost.Text))
+        var envPath = ResolveEnvPath();
+
+        var settings = _environmentConfigService.LoadOutlookSettings(envPath);
+        if (settings.ToRecipients.Count == 0)
         {
-            throw new InvalidOperationException("El servidor SMTP es obligatorio.");
+            throw new InvalidOperationException("OUTLOOK_TO no tiene destinatarios validos en .env");
         }
 
-        if (!int.TryParse(TxtSmtpPort.Text, out var port) || port <= 0)
-        {
-            throw new InvalidOperationException("El puerto SMTP no es valido.");
-        }
-
-        var toRecipients = ParseEmailList(TxtTo.Text);
-        var ccRecipients = ParseEmailList(TxtCc.Text);
-
-        if (string.IsNullOrWhiteSpace(TxtFrom.Text))
-        {
-            throw new InvalidOperationException("El correo remitente es obligatorio.");
-        }
-
-        if (toRecipients.Count == 0)
-        {
-            throw new InvalidOperationException("Debes ingresar al menos un destinatario.");
-        }
-
-        return new SmtpSettings
-        {
-            Host = TxtSmtpHost.Text.Trim(),
-            Port = port,
-            UseSsl = ChkSsl.IsChecked == true,
-            Username = TxtSmtpUser.Text.Trim(),
-            Password = TxtSmtpPassword.Password,
-            From = TxtFrom.Text.Trim(),
-            ToRecipients = toRecipients,
-            CcRecipients = ccRecipients
-        };
+        return settings;
     }
 
-    private static List<string> ParseEmailList(string rawList)
+    private void LoadOutlookConfigIntoUi()
     {
-        return rawList
-            .Split([';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        try
+        {
+            var envPath = ResolveEnvPath();
+            var settings = BuildOutlookSettingsFromEnv();
+
+            TxtSmtpHost.Text = "Outlook local";
+            TxtSmtpPort.Text = "(COM)";
+            ChkSsl.IsChecked = true;
+            TxtSmtpUser.Text = settings.SenderAccount;
+            TxtSmtpPassword.Password = string.Empty;
+            TxtFrom.Text = settings.SenderAccount;
+            TxtTo.Text = string.Join(";", settings.ToRecipients);
+            TxtCc.Text = string.Join(";", settings.CcRecipients);
+
+            SetStatus($"Outlook COM listo · {settings.SenderAccount}");
+        }
+        catch
+        {
+            SetStatus("Configura .env: OUTLOOK_SENDER y OUTLOOK_TO");
+        }
+    }
+
+    private static string ResolveEnvPath()
+    {
+        var explicitPath = Environment.GetEnvironmentVariable("NUEKPRODFO_ENV_PATH");
+        if (!string.IsNullOrWhiteSpace(explicitPath) && File.Exists(explicitPath))
+        {
+            return explicitPath;
+        }
+
+        var candidatePaths = new[]
+        {
+            Path.Combine(Environment.CurrentDirectory, ".env"),
+            Path.Combine(AppContext.BaseDirectory, ".env")
+        };
+
+        var found = candidatePaths.FirstOrDefault(File.Exists);
+        if (found is not null)
+        {
+            return found;
+        }
+
+        throw new InvalidOperationException(
+            "No se encontro .env. Se busco en el directorio actual y en el directorio de ejecucion.");
     }
 
     private void SetStatus(string message)

@@ -86,25 +86,25 @@
 
                     <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <StackPanel>
-                            <TextBlock Text="3) Configuracion SMTP" FontSize="18" FontWeight="SemiBold" Foreground="#0F766E" />
-                            <TextBlock Text="Ingresa datos de correo para enviar notificaciones por cada ticket." Margin="0,4,0,10" Foreground="#57534E" />
+                            <TextBlock Text="3) Configuracion de correo" FontSize="18" FontWeight="SemiBold" Foreground="#0F766E" />
+                            <TextBlock Text="Usa Outlook instalado en este equipo. No necesita contrasena." Margin="0,4,0,10" Foreground="#57534E" />
 
-                            <TextBlock Text="Servidor SMTP" />
-                            <TextBox x:Name="TxtSmtpHost" ToolTip="smtp.empresa.com" />
+                            <TextBlock Text="Cuenta remitente (Outlook)" />
+                            <TextBox x:Name="TxtSmtpHost" ToolTip="calaguirre@nuek.com" />
 
-                            <TextBlock Text="Puerto" />
-                            <TextBox x:Name="TxtSmtpPort" Text="587" />
+                            <TextBlock Text="Protocolo" />
+                            <TextBox x:Name="TxtSmtpPort" IsReadOnly="True" Background="#F5F5F4" />
 
-                            <CheckBox x:Name="ChkSsl" Content="Usar SSL/TLS" IsChecked="True" Margin="0,4,0,10" />
+                            <CheckBox x:Name="ChkSsl" Content="Outlook COM (autenticado)" IsChecked="True" Margin="0,4,0,10" IsEnabled="False" />
 
-                            <TextBlock Text="Usuario" />
-                            <TextBox x:Name="TxtSmtpUser" />
+                            <TextBlock Text="Usuario Outlook" />
+                            <TextBox x:Name="TxtSmtpUser" IsReadOnly="True" Background="#F5F5F4" />
 
-                            <TextBlock Text="Contrasena" />
-                            <PasswordBox x:Name="TxtSmtpPassword" />
+                            <TextBlock Text="Contrasena (no requerida)" />
+                            <PasswordBox x:Name="TxtSmtpPassword" IsEnabled="False" />
 
-                            <TextBlock Text="Correo remitente" />
-                            <TextBox x:Name="TxtFrom" ToolTip="no-reply@empresa.com" />
+                            <TextBlock Text="Remitente" />
+                            <TextBox x:Name="TxtFrom" IsReadOnly="True" Background="#F5F5F4" />
 
                             <TextBlock Text="Destinatarios (separados por ; o ,)" />
                             <TextBox x:Name="TxtTo" />

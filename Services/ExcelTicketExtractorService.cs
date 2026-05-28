@@ -20,7 +20,8 @@ public class ExcelTicketExtractorService
             FilePath = filePath,
             TicketNumber = ReadCell(worksheet, settings.TicketCellAddress),
             PackageName = ReadCell(worksheet, settings.PackageCellAddress),
-            RequesterName = ReadCell(worksheet, settings.RequesterCellAddress)
+            RequesterName = ReadCell(worksheet, settings.RequesterCellAddress),
+            BankName = ReadCell(worksheet, settings.BankCellAddress)
         };
     }
 
@@ -38,7 +39,8 @@ public class ExcelTicketExtractorService
         {
             settings.TicketCellAddress,
             settings.PackageCellAddress,
-            settings.RequesterCellAddress
+            settings.RequesterCellAddress,
+            settings.BankCellAddress
         };
 
         var bestMatch = workbook.Worksheets
