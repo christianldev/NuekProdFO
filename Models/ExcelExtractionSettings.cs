@@ -8,6 +8,8 @@ public class ExcelExtractionSettings
 
     public string PackageCellAddress { get; set; } = "B59";
 
+    public string PackageLinkCellAddress { get; set; } = "I59";
+
     public string RequesterCellAddress { get; set; } = "D10";
 
     public string BankCellAddress { get; set; } = "H10";

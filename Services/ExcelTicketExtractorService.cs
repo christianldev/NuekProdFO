@@ -20,6 +20,7 @@ public class ExcelTicketExtractorService
             FilePath = filePath,
             TicketNumber = ReadCell(worksheet, settings.TicketCellAddress),
             PackageName = ReadCell(worksheet, settings.PackageCellAddress),
+            PackageLinkUrl = ReadHyperlink(worksheet, settings.PackageLinkCellAddress),
             RequesterName = ReadCell(worksheet, settings.RequesterCellAddress),
             BankName = ReadCell(worksheet, settings.BankCellAddress)
         };
@@ -75,5 +76,40 @@ public class ExcelTicketExtractorService
         // GetFormattedString suele representar mejor el valor mostrado en Excel
         // cuando hay formatos o formulas.
         return cell.GetFormattedString().Trim();
+    }
+
+    private static string ReadHyperlink(IXLWorksheet worksheet, string cellAddress)
+    {
+        var normalizedAddress = string.IsNullOrWhiteSpace(cellAddress) ? "I59" : cellAddress.Trim();
+        var cell = worksheet.Cell(normalizedAddress);
+
+        if (cell.IsMerged())
+        {
+            cell = cell.MergedRange().FirstCell();
+        }
+
+        if (cell.HasHyperlink)
+        {
+            var hyperlink = cell.GetHyperlink();
+
+            if (hyperlink.ExternalAddress is not null)
+            {
+                return hyperlink.ExternalAddress.ToString();
+            }
+
+            if (!string.IsNullOrWhiteSpace(hyperlink.InternalAddress))
+            {
+                return hyperlink.InternalAddress.Trim();
+            }
+        }
+
+        // Fallback: si la celda tiene texto y ese texto ya es URL absoluta.
+        var rawValue = cell.GetFormattedString().Trim();
+        if (Uri.TryCreate(rawValue, UriKind.Absolute, out _))
+        {
+            return rawValue;
+        }
+
+        return string.Empty;
     }
 }

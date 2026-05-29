@@ -27,8 +27,8 @@ public class SmtpEmailService
         {
             From = new MailAddress(fromAddress),
             Subject = $"Ticket {record.TicketNumber} | {record.PackageName}",
-            Body = BuildBody(record),
-            IsBodyHtml = false
+                    Body = BuildBody(record),
+                    IsBodyHtml = true
         };
 
         foreach (var address in settings.ToRecipients)
@@ -91,15 +91,22 @@ public class SmtpEmailService
 
     private static string BuildBody(TicketRecord record)
     {
+        var ticketNumber = WebUtility.HtmlEncode(record.TicketNumber);
+        var requester = WebUtility.HtmlEncode(record.RequesterName);
+        var fileName = WebUtility.HtmlEncode(record.FileName);
+        var packageName = WebUtility.HtmlEncode(record.PackageName);
+
+        var packageContent = string.IsNullOrWhiteSpace(record.PackageLinkUrl)
+            ? packageName
+            : $"<a href=\"{WebUtility.HtmlEncode(record.PackageLinkUrl)}\">{packageName}</a>";
+
         return $"""
-Se notifica el siguiente ticket procesado desde Excel:
-
-Ticket: {record.TicketNumber}
-Paquete: {record.PackageName}
-Responsable de solicitud: {record.RequesterName}
-Archivo fuente: {record.FileName}
-
-Mensaje generado automaticamente por NuekProdFO.
+<p>Se notifica el siguiente ticket procesado desde Excel:</p>
+<p>Ticket: {ticketNumber}<br/>
+Paquete: {packageContent}<br/>
+Responsable de solicitud: {requester}<br/>
+Archivo fuente: {fileName}</p>
+<p>Mensaje generado automaticamente por NuekProdFO.</p>
 """;
     }
 }

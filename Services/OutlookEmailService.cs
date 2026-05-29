@@ -19,7 +19,7 @@ public class OutlookEmailService
         dynamic mail = outlookApp.CreateItem(OlMailItem);
 
         mail.Subject = $"[Nexus Ticket Producción] {record.TicketNumber} - {record.PackageName} - {record.BankName}";
-        mail.Body = BuildBody(record);
+        mail.HTMLBody = BuildBody(record);
 
         foreach (var address in settings.ToRecipients)
         {
@@ -63,14 +63,17 @@ public class OutlookEmailService
 
     private static string BuildBody(TicketRecord record)
     {
+        var requester = System.Net.WebUtility.HtmlEncode(record.RequesterName);
+        var packageName = System.Net.WebUtility.HtmlEncode(record.PackageName);
+        var packageContent = string.IsNullOrWhiteSpace(record.PackageLinkUrl)
+            ? packageName
+            : $"<a href=\"{System.Net.WebUtility.HtmlEncode(record.PackageLinkUrl)}\">{packageName}</a>";
+
         return $"""
-Buen día.
-
-Se ha dado de alta un nuevo ticket para paso a producción
-
-Responsable del cambio y validaciones {record.RequesterName}
-
-Ruta: {record.PackageName}
+<p>Buen dia.</p>
+<p>Se ha dado de alta un nuevo ticket para paso a produccion</p>
+<p>Responsable del cambio y validaciones {requester}</p>
+<p>Ruta: {packageContent}</p>
 """;
     }
 }
