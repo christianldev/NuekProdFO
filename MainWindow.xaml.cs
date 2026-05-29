@@ -114,7 +114,7 @@ public partial class MainWindow : Window
         {
             try
             {
-                await Task.Run(() => _emailService.SendTicketNotification(outlookSettings, record));
+                await RunOutlookSendOnStaThreadAsync(() => _emailService.SendTicketNotification(outlookSettings, record));
                 sent++;
             }
             catch (Exception ex)
@@ -213,5 +213,29 @@ public partial class MainWindow : Window
     private void SetStatus(string message)
     {
         TxtStatus.Text = message;
+    }
+
+    private static Task RunOutlookSendOnStaThreadAsync(Action action)
+    {
+        var tcs = new TaskCompletionSource<object?>();
+
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action();
+                tcs.SetResult(null);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.IsBackground = true;
+        thread.Start();
+
+        return tcs.Task;
     }
 }

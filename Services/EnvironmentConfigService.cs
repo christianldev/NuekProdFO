@@ -16,12 +16,15 @@ public class EnvironmentConfigService
 
         var sender = Require(variables, "OUTLOOK_SENDER");
         var toRaw = Require(variables, "OUTLOOK_TO");
+        var hideDraftRaw = ReadOptional(variables, "OUTLOOK_HIDE_DRAFT", "false");
+        var hideDraft = bool.TryParse(hideDraftRaw, out var parsedHideDraft) && parsedHideDraft;
 
         return new OutlookEmailSettings
         {
             SenderAccount = sender,
             ToRecipients = ParseEmailList(toRaw),
-            CcRecipients = ParseEmailList(ReadOptional(variables, "OUTLOOK_CC", string.Empty))
+            CcRecipients = ParseEmailList(ReadOptional(variables, "OUTLOOK_CC", string.Empty)),
+            HideDraftWhenApplyingSignature = hideDraft
         };
     }
 

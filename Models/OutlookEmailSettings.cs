@@ -7,4 +7,6 @@ public class OutlookEmailSettings
     public List<string> ToRecipients { get; set; } = [];
 
     public List<string> CcRecipients { get; set; } = [];
+
+    public bool HideDraftWhenApplyingSignature { get; set; } = false;
 }
