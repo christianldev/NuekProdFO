@@ -13,6 +13,7 @@ public class OutlookEmailService
     private const int OlMailItem = 0;
     private const int OlCC = 2;
     private const int OlFormatHtml = 2;
+    private const int OlWindowStateMinimized = 1;
     private const string PreferredSignatureName = "nuek_firma";
 
     public void SendTicketNotification(OutlookEmailSettings settings, TicketRecord record)
@@ -104,6 +105,15 @@ public class OutlookEmailService
             else
             {
                 mail.Display(false);
+                try
+                {
+                    dynamic inspector = mail.GetInspector;
+                    inspector.WindowState = OlWindowStateMinimized;
+                }
+                catch
+                {
+                    // Si no se puede minimizar, continuamos para no bloquear el envio.
+                }
             }
 
             var htmlFromOutlook = (string)mail.HTMLBody;
